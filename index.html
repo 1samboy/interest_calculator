@@ -34,7 +34,8 @@
             height: 200%;
             background: 
                 radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
+                radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.04) 0%, transparent 50%);
             pointer-events: none;
         }
 
@@ -167,7 +168,7 @@
             transform: translateY(-50%);
             color: #64748b;
             font-size: 1rem;
-            font-weight: 600;
+            font-weight: 500;
             pointer-events: none;
             transition: color 0.2s;
         }
@@ -195,12 +196,6 @@
         input::placeholder {
             color: #475569;
             font-weight: 400;
-        }
-
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
         }
 
         .result-box {
@@ -315,6 +310,7 @@
             }
         }
     </style>
+<base target="_blank">
 </head>
 <body>
     <div class="glow-orb blue"></div>
@@ -340,7 +336,7 @@
             </label>
             <div class="input-wrapper">
                 <span class="currency-symbol">₱</span>
-                <input type="text" id="loanAmount" placeholder="250,000" inputmode="numeric">
+                <input type="text" inputmode="decimal" id="loanAmount" placeholder="250,000">
             </div>
         </div>
 
@@ -353,7 +349,7 @@
             </label>
             <div class="input-wrapper">
                 <span class="currency-symbol">₱</span>
-                <input type="text" id="monthlyPayment" placeholder="5,000" inputmode="numeric">
+                <input type="text" inputmode="decimal" id="monthlyPayment" placeholder="1,419.47">
             </div>
         </div>
 
@@ -365,7 +361,7 @@
                 Number of Months
             </label>
             <div class="input-wrapper">
-                <input type="text" id="months" placeholder="12" inputmode="numeric" style="padding-left: 1rem;">
+                <input type="text" inputmode="numeric" id="months" placeholder="360" style="padding-left: 1rem;">
             </div>
         </div>
 
@@ -374,9 +370,9 @@
         <div class="result-box" id="resultBox">
             <div class="result-label">Monthly Interest Rate</div>
             <div class="result-value" id="monthlyRate">0.0000%</div>
-            <div class="result-formula">[(Amort × Months) − Principal] ÷ [(Principal ÷ Months) × 100]</div>
+            <div class="result-formula">Flat Rate Formula: (((A * n) - P) / P / n) * 100</div>
         </div>
-        <div class="error" id="errorMsg">Invalid inputs — monthly payment must exceed principal ÷ months</div>
+        <div class="error" id="errorMsg">Invalid inputs — total payment must exceed principal</div>
     </div>
 
     <script>
@@ -387,59 +383,72 @@
         const resultBox = document.getElementById('resultBox');
         const errorMsg = document.getElementById('errorMsg');
 
-        function formatNumber(num) {
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        }
-
-        function parseNumber(str) {
-            return parseFloat(str.replace(/,/g, '')) || 0;
-        }
-
-        function formatInput(el) {
-            let val = el.value.replace(/,/g, '').replace(/[^0-9.]/g, '');
-            if (val) {
-                const parts = val.split('.');
-                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                el.value = parts.join('.');
+        // Function to format inputs with commas and handle decimals
+        function formatNumberInput(input) {
+            let value = input.value.replace(/[^\d.]/g, ''); // Remove non-numeric except dot
+            
+            // Prevent multiple dots
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
             }
+            
+            // Format thousands with commas for the whole number part
+            if (value !== '') {
+                const splitValue = value.split('.');
+                splitValue[0] = splitValue[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                input.value = splitValue.join('.');
+            } else {
+                input.value = '';
+            }
+            
+            calculate();
+        }
+
+        // Helper to convert comma-separated strings back to floats
+        function getRawValue(val) {
+            if (!val) return 0;
+            return parseFloat(val.replace(/,/g, ''));
         }
 
         function calculate() {
-            const P = parseNumber(loanAmount.value);
-            const A = parseNumber(monthlyPayment.value);
-            const n = parseNumber(months.value);
+            const P = getRawValue(loanAmount.value);
+            const A = getRawValue(monthlyPayment.value);
+            const n = getRawValue(months.value);
 
             errorMsg.style.display = 'none';
             resultBox.classList.remove('has-value');
 
-            if (P <= 0 || A <= 0 || n <= 0) {
+            // Check if inputs are empty or zero
+            if (isNaN(P) || isNaN(A) || isNaN(n) || P <= 0 || A <= 0 || n <= 0) {
                 monthlyRateDisplay.textContent = '0.0000%';
                 return;
             }
 
-            // Formula: [(A × n) − P] ÷ [(P ÷ n) × 100]
-            const totalPaid = A * n;
-            const totalInterest = totalPaid - P;
-            const principalPerMonth = P / n;
-            const monthlyRate = totalInterest / (principalPerMonth * 100);
-
-            if (monthlyRate < 0 || !isFinite(monthlyRate)) {
+            // Check if Total Payment is less than or equal to Principal
+            if (A * n <= P) {
                 monthlyRateDisplay.textContent = '---';
                 errorMsg.style.display = 'block';
                 return;
             }
 
+            // Apply the user's flat interest rate formula: 
+            // (((Monthly Amortization * Number of Months) - Principal) / Principal / Number of Months) * 100
+            const totalPayment = A * n;
+            const totalInterest = totalPayment - P;
+            const monthlyPercent = (totalInterest / P / n) * 100;
+            
             monthlyRateDisplay.classList.add('updating');
             setTimeout(() => monthlyRateDisplay.classList.remove('updating'), 300);
-
-            monthlyRateDisplay.textContent = monthlyRate.toFixed(4) + '%';
+            
+            monthlyRateDisplay.textContent = monthlyPercent.toFixed(4) + '%';
             resultBox.classList.add('has-value');
         }
 
+        // Attach event listeners for real-time formatting and calculation
         [loanAmount, monthlyPayment, months].forEach(input => {
-            input.addEventListener('input', (e) => {
-                formatInput(e.target);
-                calculate();
+            input.addEventListener('input', function(e) {
+                formatNumberInput(e.target);
             });
         });
     </script>
