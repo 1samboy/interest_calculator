@@ -34,8 +34,7 @@
             height: 200%;
             background: 
                 radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.04) 0%, transparent 50%);
+                radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
             pointer-events: none;
         }
 
@@ -168,7 +167,7 @@
             transform: translateY(-50%);
             color: #64748b;
             font-size: 1rem;
-            font-weight: 500;
+            font-weight: 600;
             pointer-events: none;
             transition: color 0.2s;
         }
@@ -316,7 +315,6 @@
             }
         }
     </style>
-<base target="_blank">
 </head>
 <body>
     <div class="glow-orb blue"></div>
@@ -341,8 +339,8 @@
                 Loan Amount
             </label>
             <div class="input-wrapper">
-                <span class="currency-symbol">$</span>
-                <input type="number" id="loanAmount" placeholder="250,000" min="0" step="100">
+                <span class="currency-symbol">₱</span>
+                <input type="text" id="loanAmount" placeholder="250,000" inputmode="numeric">
             </div>
         </div>
 
@@ -354,8 +352,8 @@
                 Monthly Amortization
             </label>
             <div class="input-wrapper">
-                <span class="currency-symbol">$</span>
-                <input type="number" id="monthlyPayment" placeholder="1,419.47" min="0" step="0.01">
+                <span class="currency-symbol">₱</span>
+                <input type="text" id="monthlyPayment" placeholder="5,000" inputmode="numeric">
             </div>
         </div>
 
@@ -367,7 +365,7 @@
                 Number of Months
             </label>
             <div class="input-wrapper">
-                <input type="number" id="months" placeholder="360" min="1" step="1" style="padding-left: 1rem;">
+                <input type="text" id="months" placeholder="12" inputmode="numeric" style="padding-left: 1rem;">
             </div>
         </div>
 
@@ -376,7 +374,7 @@
         <div class="result-box" id="resultBox">
             <div class="result-label">Monthly Interest Rate</div>
             <div class="result-value" id="monthlyRate">0.0000%</div>
-            <div class="result-formula">Newton-Raphson numerical solver</div>
+            <div class="result-formula">[(Amort × Months) − Principal] ÷ [(Principal ÷ Months) × 100]</div>
         </div>
         <div class="error" id="errorMsg">Invalid inputs — monthly payment must exceed principal ÷ months</div>
     </div>
@@ -389,61 +387,60 @@
         const resultBox = document.getElementById('resultBox');
         const errorMsg = document.getElementById('errorMsg');
 
-        function solveMonthlyRate(P, A, n) {
-            if (A * n <= P) return null;
-            if (A <= 0 || P <= 0 || n <= 0) return null;
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
 
-            let r = 0.01;
+        function parseNumber(str) {
+            return parseFloat(str.replace(/,/g, '')) || 0;
+        }
 
-            for (let i = 0; i < 100; i++) {
-                const pow = Math.pow(1 + r, n);
-                const f = P * r * pow / (pow - 1) - A;
-                const df = P * pow * (pow - 1 - n * r) / Math.pow(pow - 1, 2);
-
-                if (Math.abs(df) < 1e-15) break;
-
-                const rNew = r - f / df;
-                if (Math.abs(rNew - r) < 1e-12) return rNew;
-                r = rNew;
-
-                if (r <= 0) r = 1e-10;
+        function formatInput(el) {
+            let val = el.value.replace(/,/g, '').replace(/[^0-9.]/g, '');
+            if (val) {
+                const parts = val.split('.');
+                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                el.value = parts.join('.');
             }
-
-            return r;
         }
 
         function calculate() {
-            const P = parseFloat(loanAmount.value);
-            const A = parseFloat(monthlyPayment.value);
-            const n = parseInt(months.value);
+            const P = parseNumber(loanAmount.value);
+            const A = parseNumber(monthlyPayment.value);
+            const n = parseNumber(months.value);
 
             errorMsg.style.display = 'none';
             resultBox.classList.remove('has-value');
 
-            if (isNaN(P) || isNaN(A) || isNaN(n) || P <= 0 || A <= 0 || n <= 0) {
+            if (P <= 0 || A <= 0 || n <= 0) {
                 monthlyRateDisplay.textContent = '0.0000%';
                 return;
             }
 
-            const r = solveMonthlyRate(P, A, n);
+            // Formula: [(A × n) − P] ÷ [(P ÷ n) × 100]
+            const totalPaid = A * n;
+            const totalInterest = totalPaid - P;
+            const principalPerMonth = P / n;
+            const monthlyRate = totalInterest / (principalPerMonth * 100);
 
-            if (r === null || r <= 0 || !isFinite(r)) {
+            if (monthlyRate < 0 || !isFinite(monthlyRate)) {
                 monthlyRateDisplay.textContent = '---';
                 errorMsg.style.display = 'block';
                 return;
             }
 
-            const monthlyPercent = r * 100;
-            
             monthlyRateDisplay.classList.add('updating');
             setTimeout(() => monthlyRateDisplay.classList.remove('updating'), 300);
-            
-            monthlyRateDisplay.textContent = monthlyPercent.toFixed(4) + '%';
+
+            monthlyRateDisplay.textContent = monthlyRate.toFixed(4) + '%';
             resultBox.classList.add('has-value');
         }
 
         [loanAmount, monthlyPayment, months].forEach(input => {
-            input.addEventListener('input', calculate);
+            input.addEventListener('input', (e) => {
+                formatInput(e.target);
+                calculate();
+            });
         });
     </script>
 </body>
