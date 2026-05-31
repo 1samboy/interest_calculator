@@ -1,560 +1,450 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Loan Calculator</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Interest Rate Calculator</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
-:root {
-  --bg: #0a0a0f;
-  --surface: #111118;
-  --surface2: #18181f;
-  --border: rgba(255,255,255,0.07);
-  --border-hover: rgba(255,255,255,0.14);
-  --accent: #c8f135;
-  --accent-dim: rgba(200,241,53,0.12);
-  --accent-glow: rgba(200,241,53,0.25);
-  --text: #f0eff8;
-  --text-muted: #6b6a7a;
-  --text-dim: #9998aa;
-  --mono: 'DM Mono', monospace;
-  --sans: 'Syne', sans-serif;
-}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-body {
-  font-family: var(--sans);
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  display: grid;
-  place-items: start center;
-  padding: 3rem 1rem 4rem;
-  overflow-x: hidden;
-}
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0e1a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+            position: relative;
+            overflow-x: hidden;
+        }
 
-body::before {
-  content: '';
-  position: fixed;
-  top: -30vh;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80vw;
-  height: 60vh;
-  background: radial-gradient(ellipse, rgba(200,241,53,0.06) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.04) 0%, transparent 50%);
+            pointer-events: none;
+        }
 
-.container {
-  width: 100%;
-  max-width: 640px;
-  position: relative;
-  z-index: 1;
-  animation: fadeUp 0.6s ease both;
-}
+        .card {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 28px;
+            padding: 3rem 2.5rem;
+            width: 100%;
+            max-width: 440px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            box-shadow: 
+                0 0 0 1px rgba(255, 255, 255, 0.03),
+                0 25px 80px -20px rgba(0, 0, 0, 0.6),
+                0 0 60px -15px rgba(59, 130, 246, 0.1);
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
 
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
 
-.header {
-  margin-bottom: 3rem;
-}
+        .glow-orb {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+        }
 
-.eyebrow {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  color: var(--accent);
-  text-transform: uppercase;
-  margin-bottom: 0.6rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+        .glow-orb.blue {
+            background: #3b82f6;
+            top: -60px;
+            right: -60px;
+        }
 
-.eyebrow::before {
-  content: '';
-  display: inline-block;
-  width: 18px;
-  height: 1px;
-  background: var(--accent);
-}
+        .glow-orb.purple {
+            background: #8b5cf6;
+            bottom: -60px;
+            left: -60px;
+        }
 
-h1 {
-  font-size: clamp(2rem, 6vw, 3rem);
-  font-weight: 800;
-  line-height: 1.05;
-  letter-spacing: -0.03em;
-  color: var(--text);
-}
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
 
-h1 span {
-  color: var(--accent);
-}
+        .icon-wrapper {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem;
+            box-shadow: 0 10px 40px -10px rgba(59, 130, 246, 0.5);
+            animation: pulse 3s ease-in-out infinite;
+        }
 
-.desc {
-  font-family: var(--mono);
-  font-size: 13px;
-  color: var(--text-muted);
-  margin-top: 0.75rem;
-  line-height: 1.6;
-}
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
 
-.inputs-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 12px;
-}
+        .icon-wrapper svg {
+            width: 32px;
+            height: 32px;
+            color: white;
+        }
 
-.field-full { grid-column: 1 / -1; }
+        h1 {
+            color: #f8fafc;
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+        }
 
-.field {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 18px 20px 16px;
-  transition: border-color 0.2s, background 0.2s;
-  position: relative;
-  overflow: hidden;
-}
+        .subtitle {
+            color: #64748b;
+            font-size: 0.95rem;
+            font-weight: 400;
+        }
 
-.field::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 14px;
-  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(200,241,53,0.05), transparent 60%);
-  opacity: 0;
-  transition: opacity 0.3s;
-  pointer-events: none;
-}
+        .input-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
 
-.field:hover::after { opacity: 1; }
-.field:focus-within { border-color: var(--accent); background: var(--surface2); }
-.field:focus-within::after { opacity: 1; }
+        label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.625rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
 
-.field label {
-  display: block;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 10px;
-}
+        .input-icon {
+            width: 16px;
+            height: 16px;
+            color: #3b82f6;
+        }
 
-.field:focus-within label { color: var(--accent); }
+        .input-wrapper {
+            position: relative;
+        }
 
-.input-row {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-}
+        .currency-symbol {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 1rem;
+            font-weight: 500;
+            pointer-events: none;
+            transition: color 0.2s;
+        }
 
-.currency {
-  font-family: var(--mono);
-  font-size: 20px;
-  font-weight: 400;
-  color: var(--text-muted);
-  line-height: 1;
-}
+        input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 2.5rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px solid rgba(148, 163, 184, 0.15);
+            border-radius: 16px;
+            color: #f1f5f9;
+            font-size: 1.15rem;
+            font-weight: 600;
+            font-family: inherit;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            outline: none;
+        }
 
-input[type="number"] {
-  flex: 1;
-  background: none;
-  border: none;
-  outline: none;
-  font-family: var(--mono);
-  font-size: 24px;
-  font-weight: 500;
-  color: var(--text);
-  width: 100%;
-  -moz-appearance: textfield;
-}
+        input:focus {
+            border-color: #3b82f6;
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), 0 0 20px -5px rgba(59, 130, 246, 0.2);
+        }
 
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+        input::placeholder {
+            color: #475569;
+            font-weight: 400;
+        }
 
-input[type="number"]::placeholder { color: var(--text-muted); opacity: 0.4; }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
 
-.unit {
-  font-family: var(--mono);
-  font-size: 13px;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
+        .result-box {
+            margin-top: 2.5rem;
+            padding: 2rem 1.5rem;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15));
+            border-radius: 24px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
 
-.error-msg {
-  background: rgba(255, 80, 80, 0.08);
-  border: 1px solid rgba(255, 80, 80, 0.2);
-  border-radius: 10px;
-  padding: 12px 16px;
-  font-family: var(--mono);
-  font-size: 12px;
-  color: #ff7070;
-  margin-bottom: 1rem;
-  display: none;
-}
+        .result-box.has-value {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(139, 92, 246, 0.25));
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 0 40px -10px rgba(59, 130, 246, 0.3);
+        }
 
-#output { display: none; }
+        .result-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            animation: shimmer 3s infinite;
+        }
 
-.result-hero {
-  background: var(--accent);
-  border-radius: 14px;
-  padding: 24px 28px;
-  margin: 1.5rem 0 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
+        @keyframes shimmer {
+            0% { left: -100%; }
+            50%, 100% { left: 100%; }
+        }
 
-@keyframes popIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to   { opacity: 1; transform: scale(1); }
-}
+        .result-label {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 0.75rem;
+            position: relative;
+            z-index: 1;
+        }
 
-.result-hero-group {}
+        .result-value {
+            color: #ffffff;
+            font-size: 3rem;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 0 40px rgba(59, 130, 246, 0.5);
+            transition: all 0.3s ease;
+        }
 
-.result-hero-label {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(10,10,15,0.55);
-  margin-bottom: 4px;
-}
+        .result-value.updating {
+            transform: scale(1.05);
+            color: #60a5fa;
+        }
 
-.result-hero-val {
-  font-family: var(--mono);
-  font-size: 36px;
-  font-weight: 500;
-  color: #0a0a0f;
-  line-height: 1;
-}
+        .result-formula {
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 0.75rem;
+            margin-top: 0.75rem;
+            position: relative;
+            z-index: 1;
+        }
 
-.result-hero-val.big {
-  font-size: 44px;
-  font-weight: 500;
-}
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.2), transparent);
+            margin: 2rem 0;
+        }
 
-.divider-v {
-  width: 1px;
-  height: 48px;
-  background: rgba(10,10,15,0.2);
-}
+        .error {
+            color: #f87171;
+            font-size: 0.85rem;
+            margin-top: 0.75rem;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+            animation: shake 0.4s ease;
+        }
 
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 12px;
-}
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
 
-.metric {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
-}
+        .input-group {
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+        }
 
-.metric-label {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 8px;
-}
+        .input-group:nth-child(2) { animation-delay: 0.1s; }
+        .input-group:nth-child(3) { animation-delay: 0.2s; }
+        .input-group:nth-child(4) { animation-delay: 0.3s; }
 
-.metric-val {
-  font-family: var(--mono);
-  font-size: 18px;
-  font-weight: 500;
-  color: var(--text);
-}
-
-.section-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 1.5rem 0 0.75rem;
-}
-
-.section-head-label {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.section-head-line {
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
-
-.table-wrap {
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  overflow: hidden;
-  max-height: 300px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
-}
-
-.table-wrap::-webkit-scrollbar { width: 4px; }
-.table-wrap::-webkit-scrollbar-track { background: transparent; }
-.table-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-table { width: 100%; border-collapse: collapse; }
-
-thead th {
-  position: sticky;
-  top: 0;
-  background: var(--surface2);
-  padding: 10px 16px;
-  text-align: right;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  border-bottom: 1px solid var(--border);
-  font-weight: 400;
-}
-
-thead th:first-child { text-align: left; }
-
-tbody td {
-  padding: 9px 16px;
-  text-align: right;
-  font-family: var(--mono);
-  font-size: 13px;
-  color: var(--text-dim);
-  border-bottom: 1px solid var(--border);
-}
-
-tbody td:first-child {
-  text-align: left;
-  color: var(--text-muted);
-  font-size: 12px;
-}
-
-tbody tr:last-child td { border-bottom: none; }
-
-tbody tr:hover td {
-  background: var(--surface2);
-  color: var(--text);
-}
-
-tbody tr:hover td:first-child { color: var(--accent); }
-
-.badge {
-  display: inline-block;
-  background: var(--accent-dim);
-  color: var(--accent);
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  padding: 3px 8px;
-  border-radius: 4px;
-  border: 1px solid rgba(200,241,53,0.2);
-}
-
-@media (max-width: 500px) {
-  .inputs-grid { grid-template-columns: 1fr; }
-  .field-full { grid-column: auto; }
-  .metrics { grid-template-columns: 1fr 1fr; }
-  .result-hero { flex-direction: column; align-items: flex-start; }
-  .divider-v { width: 48px; height: 1px; }
-}
-</style>
+        @media (max-width: 480px) {
+            .card {
+                padding: 2rem 1.5rem;
+                border-radius: 24px;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+            .result-value {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+<base target="_blank">
 </head>
 <body>
+    <div class="glow-orb blue"></div>
+    <div class="glow-orb purple"></div>
 
-<div class="container">
-  <div class="header">
-    <div class="eyebrow">Financial Tool</div>
-    <h1>Loan <span>Interest</span><br>Calculator</h1>
-    <p class="desc">Enter three parameters — get monthly &amp; annual rate.</p>
-  </div>
+    <div class="card">
+        <div class="header">
+            <div class="icon-wrapper">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+                </svg>
+            </div>
+            <h1>Interest Rate Finder</h1>
+            <p class="subtitle">Reverse-calculate your monthly rate</p>
+        </div>
 
-  <div class="inputs-grid">
-    <div class="field field-full" id="f-loan">
-      <label>Loan Amount</label>
-      <div class="input-row">
-        <span class="currency">₱</span>
-        <input type="number" id="loanAmt" placeholder="0" min="1" step="any" >
-      </div>
+        <div class="input-group">
+            <label>
+                <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Loan Amount
+            </label>
+            <div class="input-wrapper">
+                <span class="currency-symbol">$</span>
+                <input type="number" id="loanAmount" placeholder="250,000" min="0" step="100">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>
+                <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+                </svg>
+                Monthly Amortization
+            </label>
+            <div class="input-wrapper">
+                <span class="currency-symbol">$</span>
+                <input type="number" id="monthlyPayment" placeholder="1,419.47" min="0" step="0.01">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>
+                <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                </svg>
+                Number of Months
+            </label>
+            <div class="input-wrapper">
+                <input type="number" id="months" placeholder="360" min="1" step="1" style="padding-left: 1rem;">
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="result-box" id="resultBox">
+            <div class="result-label">Monthly Interest Rate</div>
+            <div class="result-value" id="monthlyRate">0.0000%</div>
+            <div class="result-formula">Newton-Raphson numerical solver</div>
+        </div>
+        <div class="error" id="errorMsg">Invalid inputs — monthly payment must exceed principal ÷ months</div>
     </div>
 
-    <div class="field" id="f-pmt">
-      <label>Monthly Amortization</label>
-      <div class="input-row">
-        <span class="currency">₱</span>
-        <input type="number" id="monthlyPmt" placeholder="0" min="1" step="any" >
-      </div>
-    </div>
+    <script>
+        const loanAmount = document.getElementById('loanAmount');
+        const monthlyPayment = document.getElementById('monthlyPayment');
+        const months = document.getElementById('months');
+        const monthlyRateDisplay = document.getElementById('monthlyRate');
+        const resultBox = document.getElementById('resultBox');
+        const errorMsg = document.getElementById('errorMsg');
 
-    <div class="field" id="f-mo">
-      <label>Number of Months</label>
-      <div class="input-row">
-        <input type="number" id="months" placeholder="0" min="1" step="1"  style="font-size:24px;">
-        <span class="unit">mos</span>
-      </div>
-    </div>
-  </div>
+        function solveMonthlyRate(P, A, n) {
+            if (A * n <= P) return null;
+            if (A <= 0 || P <= 0 || n <= 0) return null;
 
-  <div class="error-msg" id="error"></div>
+            let r = 0.01;
 
-  <div id="output">
-    <div class="result-hero">
-      <div class="result-hero-group">
-        <div class="result-hero-label">Monthly Interest Rate</div>
-        <div class="result-hero-val big" id="monthlyRate">—</div>
-      </div>
-      <div class="divider-v"></div>
-      <div class="result-hero-group">
-        <div class="result-hero-label">Annual Rate (APR)</div>
-        <div class="result-hero-val" id="annualRate">—</div>
-      </div>
-    </div>
+            for (let i = 0; i < 100; i++) {
+                const pow = Math.pow(1 + r, n);
+                const f = P * r * pow / (pow - 1) - A;
+                const df = P * pow * (pow - 1 - n * r) / Math.pow(pow - 1, 2);
 
-    <div class="metrics">
-      <div class="metric">
-        <div class="metric-label">Total Paid</div>
-        <div class="metric-val" id="totalPaid">—</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Total Interest</div>
-        <div class="metric-val" id="totalInterest">—</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Interest Ratio</div>
-        <div class="metric-val" id="interestRatio">—</div>
-      </div>
-    </div>
+                if (Math.abs(df) < 1e-15) break;
 
-    <div class="section-head">
-      <span class="section-head-label">Amortization Schedule</span>
-      <span class="section-head-line"></span>
-      <span class="badge" id="rowCount">—</span>
-    </div>
+                const rNew = r - f / df;
+                if (Math.abs(rNew - r) < 1e-12) return rNew;
+                r = rNew;
 
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Month</th>
-            <th>Payment</th>
-            <th>Principal</th>
-            <th>Interest</th>
-            <th>Balance</th>
-          </tr>
-        </thead>
-        <tbody id="amortBody"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
+                if (r <= 0) r = 1e-10;
+            }
 
-<script>
-const fmt = n => '₱' + n.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            return r;
+        }
 
-function solveRate(P, pmt, n) {
-  if (pmt * n <= P) return null;
-  let lo = 1e-12, hi = 10, r;
-  for (let i = 0; i < 400; i++) {
-    r = (lo + hi) / 2;
-    const calc = r * P / (1 - Math.pow(1 + r, -n));
-    if (Math.abs(calc - pmt) < 1e-6) break;
-    if (calc < pmt) lo = r; else hi = r;
-  }
-  return r;
-}
+        function calculate() {
+            const P = parseFloat(loanAmount.value);
+            const A = parseFloat(monthlyPayment.value);
+            const n = parseInt(months.value);
 
-function buildAmort(P, pmt, r, n) {
-  const rows = [];
-  let balance = P;
-  for (let m = 1; m <= n; m++) {
-    const interest  = balance * r;
-    const principal = m < n ? pmt - interest : balance;
-    const payment   = m < n ? pmt : principal + interest;
-    balance = Math.max(0, balance - principal);
-    rows.push({ m, payment, principal, interest, balance });
-  }
-  return rows;
-}
+            errorMsg.style.display = 'none';
+            resultBox.classList.remove('has-value');
 
-function calculate() {
-  const P   = parseFloat(document.getElementById('loanAmt').value);
-  const pmt = parseFloat(document.getElementById('monthlyPmt').value);
-  const n   = parseInt(document.getElementById('months').value);
-  const errEl = document.getElementById('error');
-  const outEl = document.getElementById('output');
+            if (isNaN(P) || isNaN(A) || isNaN(n) || P <= 0 || A <= 0 || n <= 0) {
+                monthlyRateDisplay.textContent = '0.0000%';
+                return;
+            }
 
-  if (isNaN(P) || isNaN(pmt) || isNaN(n) || P <= 0 || pmt <= 0 || n <= 0) {
-    errEl.textContent = 'Fill in all three fields with positive values.';
-    errEl.style.display = 'block'; outEl.style.display = 'none'; return;
-  }
-  if (pmt * n <= P) {
-    errEl.textContent = 'Total payments must exceed the loan amount to compute interest.';
-    errEl.style.display = 'block'; outEl.style.display = 'none'; return;
-  }
+            const r = solveMonthlyRate(P, A, n);
 
-  const r = solveRate(P, pmt, n);
-  if (!r || r <= 0) {
-    errEl.textContent = 'Unable to solve for interest rate. Check your inputs.';
-    errEl.style.display = 'block'; outEl.style.display = 'none'; return;
-  }
+            if (r === null || r <= 0 || !isFinite(r)) {
+                monthlyRateDisplay.textContent = '---';
+                errorMsg.style.display = 'block';
+                return;
+            }
 
-  errEl.style.display = 'none';
-  outEl.style.display = 'block';
+            const monthlyPercent = r * 100;
+            
+            monthlyRateDisplay.classList.add('updating');
+            setTimeout(() => monthlyRateDisplay.classList.remove('updating'), 300);
+            
+            monthlyRateDisplay.textContent = monthlyPercent.toFixed(4) + '%';
+            resultBox.classList.add('has-value');
+        }
 
-  document.getElementById('monthlyRate').textContent   = (r * 100).toFixed(4) + '%';
-  document.getElementById('annualRate').textContent    = (r * 12 * 100).toFixed(2) + '%';
-  document.getElementById('totalPaid').textContent     = fmt(pmt * n).replace('₱','');
-  document.getElementById('totalInterest').textContent = fmt(pmt * n - P).replace('₱','');
-  document.getElementById('interestRatio').textContent = ((pmt * n - P) / P * 100).toFixed(2) + '%';
-  document.getElementById('rowCount').textContent      = n + ' rows';
-
-  const rows = buildAmort(P, pmt, r, n);
-  document.getElementById('amortBody').innerHTML = rows.map(row =>
-    `<tr>
-      <td>${String(row.m).padStart(2,'0')}</td>
-      <td>${fmt(row.payment)}</td>
-      <td>${fmt(row.principal)}</td>
-      <td>${fmt(row.interest)}</td>
-      <td>${fmt(row.balance)}</td>
-    </tr>`
-  ).join('');
-}
-
-['loanAmt','monthlyPmt','months'].forEach(id =>
-  document.getElementById(id).addEventListener('input', calculate)
-);
-
-document.querySelectorAll('.field').forEach(f => {
-  f.addEventListener('mousemove', e => {
-    const r = f.getBoundingClientRect();
-    f.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
-    f.style.setProperty('--my', ((e.clientY - r.top)  / r.height * 100) + '%');
-  });
-});
-
-
-</script>
+        [loanAmount, monthlyPayment, months].forEach(input => {
+            input.addEventListener('input', calculate);
+        });
+    </script>
 </body>
 </html>
