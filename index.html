@@ -2,8 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Monthly Interest Rate Calculator</title>
+
+    <meta name="theme-color" content="#0a0e1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Rate Finder">
+    <meta name="application-name" content="Rate Finder">
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'><rect width='256' height='256' rx='56' fill='%230a0e1a'/><rect width='256' height='256' rx='56' fill='url(%23grad)' opacity='0.3'/><defs><linearGradient id='grad' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%233b82f6'/><stop offset='100%' stop-color='%238b5cf6'/></linearGradient></defs><text x='50%' y='55%' font-family='sans-serif' font-weight='800' font-size='140' fill='%23ffffff' text-anchor='middle' dominant-baseline='middle'>%</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'><rect width='256' height='256' rx='56' fill='%230a0e1a'/><rect width='256' height='256' rx='56' fill='url(%23grad)' opacity='0.3'/><defs><linearGradient id='grad' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%233b82f6'/><stop offset='100%' stop-color='%238b5cf6'/></linearGradient></defs><text x='50%' y='55%' font-family='sans-serif' font-weight='800' font-size='140' fill='%23ffffff' text-anchor='middle' dominant-baseline='middle'>%</text></svg>">
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
@@ -13,16 +23,27 @@
             box-sizing: border-box;
         }
 
+        html {
+            min-height: 100%;
+            background: #0a0e1a;
+            /* Prevents pull-to-refresh on mobile when installed as an app */
+            overscroll-behavior-y: none; 
+        }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #0a0e1a;
-            min-height: 100vh;
+            background: transparent;
+            min-height: 100%;
+            height: auto;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 2rem 1rem;
             position: relative;
             overflow-x: hidden;
+            /* Better text rendering for mobile apps */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         body::before {
@@ -37,6 +58,7 @@
                 radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
                 radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.04) 0%, transparent 50%);
             pointer-events: none;
+            z-index: -1;
         }
 
         .card {
@@ -47,6 +69,7 @@
             padding: 3rem 2.5rem;
             width: 100%;
             max-width: 440px;
+            height: auto;
             border: 1px solid rgba(148, 163, 184, 0.1);
             box-shadow: 
                 0 0 0 1px rgba(255, 255, 255, 0.03),
@@ -185,6 +208,8 @@
             font-family: inherit;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             outline: none;
+            /* Removes iOS inner shadow on inputs */
+            -webkit-appearance: none;
         }
 
         input:focus {
@@ -257,14 +282,6 @@
         .result-value.updating {
             transform: scale(1.05);
             color: #60a5fa;
-        }
-
-        .result-formula {
-            color: rgba(255, 255, 255, 0.35);
-            font-size: 0.75rem;
-            margin-top: 0.75rem;
-            position: relative;
-            z-index: 1;
         }
 
         .divider {
@@ -369,8 +386,7 @@
 
         <div class="result-box" id="resultBox">
             <div class="result-label">Monthly Interest Rate</div>
-            <div class="result-value" id="monthlyRate">0.0000%</div>
-            <div class="result-formula">Flat Rate Formula: (((A * n) - P) / P / n) * 100</div>
+            <div class="result-value" id="monthlyRate">0.00%</div>
         </div>
         <div class="error" id="errorMsg">Invalid inputs — total payment must exceed principal</div>
     </div>
@@ -421,7 +437,7 @@
 
             // Check if inputs are empty or zero
             if (isNaN(P) || isNaN(A) || isNaN(n) || P <= 0 || A <= 0 || n <= 0) {
-                monthlyRateDisplay.textContent = '0.0000%';
+                monthlyRateDisplay.textContent = '0.00%';
                 return;
             }
 
@@ -441,7 +457,7 @@
             monthlyRateDisplay.classList.add('updating');
             setTimeout(() => monthlyRateDisplay.classList.remove('updating'), 300);
             
-            monthlyRateDisplay.textContent = monthlyPercent.toFixed(4) + '%';
+            monthlyRateDisplay.textContent = monthlyPercent.toFixed(2) + '%';
             resultBox.classList.add('has-value');
         }
 
