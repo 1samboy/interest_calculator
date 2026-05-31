@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loan Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a0f;
+  --surface: #111118;
+  --surface2: #18181f;
+  --border: rgba(255,255,255,0.07);
+  --border-hover: rgba(255,255,255,0.14);
+  --accent: #c8f135;
+  --accent-dim: rgba(200,241,53,0.12);
+  --accent-glow: rgba(200,241,53,0.25);
+  --text: #f0eff8;
+  --text-muted: #6b6a7a;
+  --text-dim: #9998aa;
+  --mono: 'DM Mono', monospace;
+  --sans: 'Syne', sans-serif;
+}
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: grid;
+  place-items: start center;
+  padding: 3rem 1rem 4rem;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: -30vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80vw;
+  height: 60vh;
+  background: radial-gradient(ellipse, rgba(200,241,53,0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  width: 100%;
+  max-width: 640px;
+  position: relative;
+  z-index: 1;
+  animation: fadeUp 0.6s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.header {
+  margin-bottom: 3rem;
+}
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 18px;
+  height: 1px;
+  background: var(--accent);
+}
+
+h1 {
+  font-size: clamp(2rem, 6vw, 3rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+h1 span {
+  color: var(--accent);
+}
+
+.desc {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 0.75rem;
+  line-height: 1.6;
+}
+
+.inputs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.field-full { grid-column: 1 / -1; }
+
+.field {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px 16px;
+  transition: border-color 0.2s, background 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.field::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(200,241,53,0.05), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.field:hover::after { opacity: 1; }
+.field:focus-within { border-color: var(--accent); background: var(--surface2); }
+.field:focus-within::after { opacity: 1; }
+
+.field label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.field:focus-within label { color: var(--accent); }
+
+.input-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.currency {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+input[type="number"] {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-family: var(--mono);
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text);
+  width: 100%;
+  -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+input[type="number"]::placeholder { color: var(--text-muted); opacity: 0.4; }
+
+.unit {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.error-msg {
+  background: rgba(255, 80, 80, 0.08);
+  border: 1px solid rgba(255, 80, 80, 0.2);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: #ff7070;
+  margin-bottom: 1rem;
+  display: none;
+}
+
+#output { display: none; }
+
+.result-hero {
+  background: var(--accent);
+  border-radius: 14px;
+  padding: 24px 28px;
+  margin: 1.5rem 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.result-hero-group {}
+
+.result-hero-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(10,10,15,0.55);
+  margin-bottom: 4px;
+}
+
+.result-hero-val {
+  font-family: var(--mono);
+  font-size: 36px;
+  font-weight: 500;
+  color: #0a0a0f;
+  line-height: 1;
+}
+
+.result-hero-val.big {
+  font-size: 44px;
+  font-weight: 500;
+}
+
+.divider-v {
+  width: 1px;
+  height: 48px;
+  background: rgba(10,10,15,0.2);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.metric {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.metric-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.metric-val {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 1.5rem 0 0.75rem;
+}
+
+.section-head-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.section-head-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.table-wrap {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  max-height: 300px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.table-wrap::-webkit-scrollbar { width: 4px; }
+.table-wrap::-webkit-scrollbar-track { background: transparent; }
+.table-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+table { width: 100%; border-collapse: collapse; }
+
+thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface2);
+  padding: 10px 16px;
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  font-weight: 400;
+}
+
+thead th:first-child { text-align: left; }
+
+tbody td {
+  padding: 9px 16px;
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+}
+
+tbody td:first-child {
+  text-align: left;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+tbody tr:last-child td { border-bottom: none; }
+
+tbody tr:hover td {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+tbody tr:hover td:first-child { color: var(--accent); }
+
+.badge {
+  display: inline-block;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(200,241,53,0.2);
+}
+
+@media (max-width: 500px) {
+  .inputs-grid { grid-template-columns: 1fr; }
+  .field-full { grid-column: auto; }
+  .metrics { grid-template-columns: 1fr 1fr; }
+  .result-hero { flex-direction: column; align-items: flex-start; }
+  .divider-v { width: 48px; height: 1px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div class="eyebrow">Financial Tool</div>
+    <h1>Loan <span>Interest</span><br>Calculator</h1>
+    <p class="desc">Enter three parameters — get monthly &amp; annual rate.</p>
+  </div>
+
+  <div class="inputs-grid">
+    <div class="field field-full" id="f-loan">
+      <label>Loan Amount</label>
+      <div class="input-row">
+        <span class="currency">₱</span>
+        <input type="number" id="loanAmt" placeholder="0" min="1" step="any" >
+      </div>
+    </div>
+
+    <div class="field" id="f-pmt">
+      <label>Monthly Amortization</label>
+      <div class="input-row">
+        <span class="currency">₱</span>
+        <input type="number" id="monthlyPmt" placeholder="0" min="1" step="any" >
+      </div>
+    </div>
+
+    <div class="field" id="f-mo">
+      <label>Number of Months</label>
+      <div class="input-row">
+        <input type="number" id="months" placeholder="0" min="1" step="1"  style="font-size:24px;">
+        <span class="unit">mos</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-msg" id="error"></div>
+
+  <div id="output">
+    <div class="result-hero">
+      <div class="result-hero-group">
+        <div class="result-hero-label">Monthly Interest Rate</div>
+        <div class="result-hero-val big" id="monthlyRate">—</div>
+      </div>
+      <div class="divider-v"></div>
+      <div class="result-hero-group">
+        <div class="result-hero-label">Annual Rate (APR)</div>
+        <div class="result-hero-val" id="annualRate">—</div>
+      </div>
+    </div>
+
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-label">Total Paid</div>
+        <div class="metric-val" id="totalPaid">—</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Total Interest</div>
+        <div class="metric-val" id="totalInterest">—</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Interest Ratio</div>
+        <div class="metric-val" id="interestRatio">—</div>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <span class="section-head-label">Amortization Schedule</span>
+      <span class="section-head-line"></span>
+      <span class="badge" id="rowCount">—</span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th>Payment</th>
+            <th>Principal</th>
+            <th>Interest</th>
+            <th>Balance</th>
+          </tr>
+        </thead>
+        <tbody id="amortBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const fmt = n => '₱' + n.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+function solveRate(P, pmt, n) {
+  if (pmt * n <= P) return null;
+  let lo = 1e-12, hi = 10, r;
+  for (let i = 0; i < 400; i++) {
+    r = (lo + hi) / 2;
+    const calc = r * P / (1 - Math.pow(1 + r, -n));
+    if (Math.abs(calc - pmt) < 1e-6) break;
+    if (calc < pmt) lo = r; else hi = r;
+  }
+  return r;
+}
+
+function buildAmort(P, pmt, r, n) {
+  const rows = [];
+  let balance = P;
+  for (let m = 1; m <= n; m++) {
+    const interest  = balance * r;
+    const principal = m < n ? pmt - interest : balance;
+    const payment   = m < n ? pmt : principal + interest;
+    balance = Math.max(0, balance - principal);
+    rows.push({ m, payment, principal, interest, balance });
+  }
+  return rows;
+}
+
+function calculate() {
+  const P   = parseFloat(document.getElementById('loanAmt').value);
+  const pmt = parseFloat(document.getElementById('monthlyPmt').value);
+  const n   = parseInt(document.getElementById('months').value);
+  const errEl = document.getElementById('error');
+  const outEl = document.getElementById('output');
+
+  if (isNaN(P) || isNaN(pmt) || isNaN(n) || P <= 0 || pmt <= 0 || n <= 0) {
+    errEl.textContent = 'Fill in all three fields with positive values.';
+    errEl.style.display = 'block'; outEl.style.display = 'none'; return;
+  }
+  if (pmt * n <= P) {
+    errEl.textContent = 'Total payments must exceed the loan amount to compute interest.';
+    errEl.style.display = 'block'; outEl.style.display = 'none'; return;
+  }
+
+  const r = solveRate(P, pmt, n);
+  if (!r || r <= 0) {
+    errEl.textContent = 'Unable to solve for interest rate. Check your inputs.';
+    errEl.style.display = 'block'; outEl.style.display = 'none'; return;
+  }
+
+  errEl.style.display = 'none';
+  outEl.style.display = 'block';
+
+  document.getElementById('monthlyRate').textContent   = (r * 100).toFixed(4) + '%';
+  document.getElementById('annualRate').textContent    = (r * 12 * 100).toFixed(2) + '%';
+  document.getElementById('totalPaid').textContent     = fmt(pmt * n).replace('₱','');
+  document.getElementById('totalInterest').textContent = fmt(pmt * n - P).replace('₱','');
+  document.getElementById('interestRatio').textContent = ((pmt * n - P) / P * 100).toFixed(2) + '%';
+  document.getElementById('rowCount').textContent      = n + ' rows';
+
+  const rows = buildAmort(P, pmt, r, n);
+  document.getElementById('amortBody').innerHTML = rows.map(row =>
+    `<tr>
+      <td>${String(row.m).padStart(2,'0')}</td>
+      <td>${fmt(row.payment)}</td>
+      <td>${fmt(row.principal)}</td>
+      <td>${fmt(row.interest)}</td>
+      <td>${fmt(row.balance)}</td>
+    </tr>`
+  ).join('');
+}
+
+['loanAmt','monthlyPmt','months'].forEach(id =>
+  document.getElementById(id).addEventListener('input', calculate)
+);
+
+document.querySelectorAll('.field').forEach(f => {
+  f.addEventListener('mousemove', e => {
+    const r = f.getBoundingClientRect();
+    f.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+    f.style.setProperty('--my', ((e.clientY - r.top)  / r.height * 100) + '%');
+  });
+});
+
+
+</script>
+</body>
+</html>
