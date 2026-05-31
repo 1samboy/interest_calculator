@@ -33,7 +33,7 @@
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: transparent;
-            min-height: 100%;
+            min-height: 100vh; /* Changed to vh to ensure absolute bottom placement works consistently */
             height: auto;
             display: flex;
             align-items: center;
@@ -78,6 +78,7 @@
             position: relative;
             z-index: 1;
             animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            margin-bottom: 2rem; /* Added margin to prevent overlapping with footer on small screens */
         }
 
         @keyframes slideUp {
@@ -314,6 +315,20 @@
         .input-group:nth-child(3) { animation-delay: 0.2s; }
         .input-group:nth-child(4) { animation-delay: 0.3s; }
 
+        /* Custom Footer Style */
+        .bottom-footer {
+            position: absolute;
+            bottom: 1.5rem;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: #475569;
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            z-index: 10;
+        }
+
         @media (max-width: 480px) {
             .card {
                 padding: 2rem 1.5rem;
@@ -390,6 +405,8 @@
         </div>
         <div class="error" id="errorMsg">Invalid inputs — total payment must exceed principal</div>
     </div>
+
+    <div class="bottom-footer">Developed by PLV IT Solutions &copy; COPYRIGHT</div>
 
     <script>
         const loanAmount = document.getElementById('loanAmount');
